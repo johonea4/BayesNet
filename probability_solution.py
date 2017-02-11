@@ -1,5 +1,13 @@
-x"""Testing pbnt. Run this before anything else to get pbnt to work!"""
+"""Testing pbnt. Run this before anything else to get pbnt to work!"""
 import sys
+from Node import BayesNode
+from Graph import BayesNet
+from numpy import zeros, float32
+import Distribution
+from Distribution import DiscreteDistribution, ConditionalDiscreteDistribution
+from Inference import JunctionTreeEngine
+
+
 if('pbnt/combined' not in sys.path):
     sys.path.append('pbnt/combined')
 from exampleinference import inferenceExample
@@ -13,3 +21,90 @@ inferenceExample()
 WRITE YOUR CODE BELOW. DO NOT CHANGE ANY FUNCTION HEADERS FROM THE NOTEBOOK.
 '''
 
+
+def make_power_plant_net():
+    """Create a Bayes Net representation of the above power plant problem. 
+    Use the following as the name attribute: "alarm","faulty alarm", "gauge","faulty gauge", "temperature". (for the tests to work.)
+    """
+    # TODO: finish this function    
+    raise NotImplementedError
+
+
+def set_probability(bayes_net):
+    """Set probability distribution for each node in the power plant system."""
+    # TODO: finish this function
+    raise NotImplementedError
+
+
+def get_alarm_prob(bayes_net, alarm_rings):
+    """Calculate the marginal 
+    probability of the alarm 
+    ringing (T/F) in the 
+    power plant system."""
+    # TODO: finish this function
+    raise NotImplementedError
+
+
+def get_gauge_prob(bayes_net, gauge_hot):
+    """Calculate the marginal
+    probability of the gauge 
+    showing hot (T/F) in the 
+    power plant system."""
+    # TOOD: finish this function
+    raise NotImplementedError
+
+
+def get_temperature_prob(bayes_net,temp_hot):
+    """Calculate the conditional probability 
+    of the temperature being hot (T/F) in the
+    power plant system, given that the
+    alarm sounds and neither the gauge
+    nor alarm is faulty."""
+    # TODO: finish this function
+    raise NotImplementedError
+
+
+def get_game_network():
+    """Create a Bayes Net representation of the game problem.
+    Name the nodes as "A","B","C","AvB","BvC" and "CvA".  """
+    # TODO: fill this out
+    raise NotImplementedError
+
+
+def calculate_posterior(games_net):
+    """Calculate the posterior distribution of the BvC match given that A won against B and tied C. 
+    Return a list of probabilities corresponding to win, loss and tie likelihood."""
+    # TODO: finish this function
+    raise NotImplementedError
+
+
+
+def Gibbs_sampler(games_net, initial_value):
+    """Complete a single iteration of the Gibbs sampling algorithm 
+    given a Bayesian network and an initial state value. 
+    """
+    # TODO: finish this function
+    raise NotImplementedError
+
+
+def MH_sampler(games_net, initial_value):
+    """Complete a single iteration of the MH sampling algorithm given a Bayesian network and an initial state value. 
+    """
+    # TODO: finish this function    
+    raise NotImplementedError
+
+
+
+def compare_sampling(bayes_net,initial_state):
+    """Compare Gibbs and Metropolis-Hastings sampling by calculating how long it takes for each method to converge."""    
+    # TODO: finish this function
+    raise NotImplementedError
+
+
+def sampling_question():
+    """Question about sampling performance."""
+    # TODO: assign value to choice and factor
+    choice = 2
+    options = ['Gibbs','Metropolis-Hastings']
+    factor = 0
+    return options[choice], factor

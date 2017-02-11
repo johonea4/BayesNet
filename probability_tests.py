@@ -15,7 +15,7 @@ def network_setup_test(power_plant):
     else:
         print('incorrect number of nodes')
 
-#Part 1c
+#Part 1b
 def probability_setup_test(power_plant):
     """Test that all nodes in the power plant network have proper probability distributions.
     Note that all nodes have to be named predictably for tests to run correctly."""
@@ -154,10 +154,3 @@ def games_network_test(games_net):
             print('incorrect match distribution size')
     else:
         print 'No node with the name AvB exists.'
-
-#Part 2b Test
-def posterior_test(posterior):
-    if (abs(posterior[0]-0.25)<0.01 and abs(posterior[1]-0.42)<0.01 and abs(posterior[2]-0.31)<0.01):
-        print 'correct posterior'
-    else:
-        print 'incorrect posterior calculated'
