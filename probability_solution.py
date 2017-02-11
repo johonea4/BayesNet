@@ -1,12 +1,5 @@
 """Testing pbnt. Run this before anything else to get pbnt to work!"""
 import sys
-from Node import BayesNode
-from Graph import BayesNet
-from numpy import zeros, float32
-import Distribution
-from Distribution import DiscreteDistribution, ConditionalDiscreteDistribution
-from Inference import JunctionTreeEngine
-
 
 if('pbnt/combined' not in sys.path):
     sys.path.append('pbnt/combined')
@@ -21,6 +14,13 @@ inferenceExample()
 WRITE YOUR CODE BELOW. DO NOT CHANGE ANY FUNCTION HEADERS FROM THE NOTEBOOK.
 '''
 
+
+from Node import BayesNode
+from Graph import BayesNet
+from numpy import zeros, float32
+import Distribution
+from Distribution import DiscreteDistribution, ConditionalDiscreteDistribution
+from Inference import JunctionTreeEngine
 
 def make_power_plant_net():
     """Create a Bayes Net representation of the above power plant problem. 
