@@ -11944,7 +11944,7 @@ T_node.add_child(A_node)
 <pre><code>A_distribution = DiscreteDistribution(A_node)
 index = A_distribution.generate_index([],[])
 A_distribution[index] = [0.3,0.7]
-A_Node.set_dist(A_distribution)
+A_node.set_dist(A_distribution)
 
 </code></pre>
 <p>REMEMBER: USE INDEX 0 FOR FALSE IN THE CODE.</p>
@@ -12351,13 +12351,13 @@ Build a Bayes Net to represent the three teams and their influences on the match
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">calculate_posterior</span><span class="p">(</span><span class="n">games_net</span><span class="p">):</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">calculate_posterior</span><span class="p">(</span><span class="n">bayes_net</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Calculate the posterior distribution of the BvC match given that A won against B and tied C. </span>
 <span class="sd">    Return a list of probabilities corresponding to win, loss and tie likelihood.&quot;&quot;&quot;</span>
     <span class="n">posterior</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
     <span class="c1"># TODO: finish this function</span>
     
-    <span class="k">return</span> <span class="n">posterior</span>
+    <span class="k">return</span> <span class="n">posterior</span> <span class="c1"># list </span>
 </pre></div>
 
 </div>
@@ -12370,7 +12370,9 @@ Build a Bayes Net to represent the three teams and their influences on the match
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="n">posterior</span> <span class="o">=</span> <span class="n">calculate_posterior</span><span class="p">(</span><span class="n">game_net</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="kn">from</span> <span class="nn">probability_tests</span> <span class="kn">import</span> <span class="n">posterior_test</span>
+<span class="n">posterior</span> <span class="o">=</span> <span class="n">calculate_posterior</span><span class="p">(</span><span class="n">game_net</span><span class="p">)</span>
+<span class="n">posterior_test</span><span class="p">(</span><span class="n">posterior</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -12384,7 +12386,8 @@ Build a Bayes Net to represent the three teams and their influences on the match
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="2c:-Gibbs-sampling">2c: Gibbs sampling<a class="anchor-link" href="#2c:-Gibbs-sampling">&#182;</a></h2><p>15 points</p>
-<p>Implement the Gibbs sampling algorithm, which is a special case of Metropolis-Hastings. You'll do this in Gibbs_sampling(), which takes a Bayesian network and initial state value as a parameter and returns a sample state drawn from the network's distribution. The method should just consist of a single iteration of the algorithm. If no initial value is provided, default to a uniform distribution over the possible states.</p>
+<p>Implement the Gibbs sampling algorithm, which is a special case of Metropolis-Hastings. You'll do this in Gibbs_sampler(), which takes a Bayesian network and initial state value as a parameter and returns a sample state drawn from the network's distribution. In case of Gibbs, the returned state differs from the input state at at-most one variable (randomly chosen).</p>
+<p>The method should just consist of a single iteration of the algorithm. If an initial value is not given, default to a state chosen uniformly at random from the possible states.</p>
 <p>Note: DO NOT USE the given inference engines to run the sampling method, since the whole point of sampling is to calculate marginals without running inference.</p>
 
 <pre><code> "YOU WILL SCORE 0 POINTS ON THIS ASSIGNMENT IF YOU USE THE GIVEN INFERENCE ENGINES FOR THIS PART!!"
@@ -12404,9 +12407,9 @@ Build a Bayes Net to represent the three teams and their influences on the match
 <p>Hint 1: In both Metropolis-Hastings and Gibbs sampling, you'll need access to each node's probability distribution and nodes. 
 You can access these by calling:</p>
 
-<pre><code>A = games_net.get_node_by_name("A")      
+<pre><code>A = bayes_net.get_node_by_name("A")      
 team_table = A.dist.table
-AvB = games_net.get_node_by_name("AvB")
+AvB = bayes_net.get_node_by_name("AvB")
 match_table = AvB.dist.table
 
 </code></pre>
@@ -12422,17 +12425,18 @@ match_table = AvB.dist.table
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">Gibbs_sampler</span><span class="p">(</span><span class="n">games_net</span><span class="p">,</span> <span class="n">initial_value</span><span class="p">):</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">Gibbs_sampler</span><span class="p">(</span><span class="n">bayes_net</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Complete a single iteration of the Gibbs sampling algorithm </span>
 <span class="sd">    given a Bayesian network and an initial state value. </span>
 <span class="sd">    </span>
-<span class="sd">    initial_value is a list of length 6 where: </span>
+<span class="sd">    initial_state is a list of length 6 where: </span>
 <span class="sd">    index 0-2: represent skills of teams A,B,C (values lie in [0,3] inclusive)</span>
 <span class="sd">    index 3-5: represent results of matches AvB, BvC, CvA (values lie in [0,2] inclusive)</span>
 <span class="sd">    </span>
 <span class="sd">    Returns the new state sampled from the probability distribution as a tuple of length 6.</span>
 <span class="sd">    Return the sample as a tuple.    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sample</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">initial_state</span><span class="p">)</span>    
     <span class="c1"># TODO: finish this function</span>
     <span class="k">return</span> <span class="n">sample</span>
 </pre></div>
@@ -12464,7 +12468,8 @@ match_table = AvB.dist.table
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="2d:-Metropolis-Hastings-sampling">2d: Metropolis-Hastings sampling<a class="anchor-link" href="#2d:-Metropolis-Hastings-sampling">&#182;</a></h2><p>15 points</p>
 <p>Now you will implement the Metropolis-Hastings algorithm, which is another method for estimating a probability distribution.
-The general idea of MH is to build an approximation of a latent probability distribution by repeatedly generating a "candidate" value for each random variable in the system, and then probabilistically accepting or rejecting the candidate value based on an underlying acceptance function. These <a href="https://www.cs.cmu.edu/~scohen/psnlp-lecture6.pdf">slides</a> provide a nice intro.</p>
+The general idea of MH is to build an approximation of a latent probability distribution by repeatedly generating a "candidate" value for each random variable in the system, and then probabilistically accepting or rejecting the candidate value based on an underlying acceptance function. Unlike Gibbs, in case of MH, the returned state can differ from the initial state at more than one variable.
+This <a href="http://www.mit.edu/~ilkery/papers/MetropolisHastingsSampling.pdf">cheat sheet</a> provides a nice intro.</p>
 <p>This method method should just perform a single iteration of the algorithm. If an initial value is not given, default to a state chosen uniformly at random from the possible states.</p>
 <p>Note: DO NOT USE the given inference engines to run the sampling method, since the whole point of sampling is to calculate marginals without running inference.</p>
 
@@ -12478,19 +12483,19 @@ The general idea of MH is to build an approximation of a latent probability dist
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">MH_sampler</span><span class="p">(</span><span class="n">games_net</span><span class="p">,</span> <span class="n">initial_value</span><span class="p">):</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">MH_sampler</span><span class="p">(</span><span class="n">bayes_net</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Complete a single iteration of the MH sampling algorithm given a Bayesian network and an initial state value. </span>
-<span class="sd">    initial_value is a list of length 6 where: </span>
+<span class="sd">    initial_state is a list of length 6 where: </span>
 <span class="sd">    index 0-2: represent skills of teams A,B,C (values lie in [0,3] inclusive)</span>
 <span class="sd">    index 3-5: represent results of matches AvB, BvC, CvA (values lie in [0,2] inclusive)</span>
 <span class="sd">    </span>
 <span class="sd">    Returns the new state sampled from the probability distribution as a tuple of length 6. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">A</span><span class="o">=</span> <span class="n">games_net</span><span class="o">.</span><span class="n">get_node_by_name</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>      
-    <span class="n">AvB</span><span class="o">=</span> <span class="n">games_net</span><span class="o">.</span><span class="n">get_node_by_name</span><span class="p">(</span><span class="s2">&quot;AvB&quot;</span><span class="p">)</span>
+    <span class="n">A</span><span class="o">=</span> <span class="n">bayes_net</span><span class="o">.</span><span class="n">get_node_by_name</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>      
+    <span class="n">AvB</span><span class="o">=</span> <span class="n">bayes_net</span><span class="o">.</span><span class="n">get_node_by_name</span><span class="p">(</span><span class="s2">&quot;AvB&quot;</span><span class="p">)</span>
     <span class="n">match_table</span> <span class="o">=</span> <span class="n">AvB</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">table</span>
     <span class="n">team_table</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">table</span>
-    <span class="n">sample</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">initial_value</span><span class="p">)</span>    
+    <span class="n">sample</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">initial_state</span><span class="p">)</span>    
     <span class="c1"># TODO: finish this function</span>
     
     <span class="k">return</span> <span class="n">sample</span>
@@ -12507,8 +12512,8 @@ The general idea of MH is to build an approximation of a latent probability dist
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="c1"># arbitrary initial state for the game system</span>
-<span class="n">initial_value</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> 
-<span class="n">sample</span> <span class="o">=</span> <span class="n">MH_sampler</span><span class="p">(</span><span class="n">game_net</span><span class="p">,</span> <span class="n">initial_value</span><span class="p">)</span>
+<span class="n">initial_state</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> 
+<span class="n">sample</span> <span class="o">=</span> <span class="n">MH_sampler</span><span class="p">(</span><span class="n">game_net</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -12523,10 +12528,12 @@ The general idea of MH is to build an approximation of a latent probability dist
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="2e:-Comparing-sampling-methods">2e: Comparing sampling methods<a class="anchor-link" href="#2e:-Comparing-sampling-methods">&#182;</a></h2><p>20 points</p>
 <p>Now we are ready for the moment of truth.</p>
-<p>Given the same outcomes as in 2b, A beats B and A draws with C, you should now estimate the likelihood of different outcomes for the third match by running Gibbs sampling until it converges to a stationary distribution. We'll say that the sampler has converged when, for 10 successive iterations, the difference in expected outcome for the third match differs from the previous estimated outcome by less than .1%.</p>
+<p>Given the same outcomes as in 2b, A beats B and A draws with C, you should now estimate the likelihood of different outcomes for the third match by running Gibbs sampling until it converges to a stationary distribution. 
+We'll say that the sampler has converged when, for "N" successive iterations, the difference in expected outcome for the 3rd match differs from the previous estimated outcome by less than "delta". N is a positive integer. delta goes from (0,1). For the most stationary convergence, delta should be very small. N could typically take values like 10,20,...,100 or even more.</p>
+<p>Measure how many iterations it takes for Gibbs and MH to converge to a stationary distribution over the posterior. See for yourself how close (or not) this stable distribution is to what the Inference Engine returned in 2b. And if not, try tuning those parameters(N and delta). (You might find the concept of "burn-in" period useful).</p>
+<p>For the purpose of this assignment, we'll say that the sampler has converged when, for 10 successive iterations, the difference in expected outcome for the third match differs from the previous estimated outcome by less than .001 (0.1%).</p>
 <p>Repeat this experiment for Metropolis-Hastings sampling.</p>
-<p>Which algorithm converges more quickly? By approximately what factor? For instance, if Metropolis-Hastings takes twice as many iterations to converge as Gibbs sampling, you'd say that it converged faster by a factor of 2. Fill in sampling_question() to answer both parts.
-Also, see for yourself how close (or not) this estimation is to what the Inference Engine returned in 2b.</p>
+<p>Which algorithm converges more quickly? By approximately what factor? For instance, if Metropolis-Hastings takes twice as many iterations to converge as Gibbs sampling, you'd say that it converged faster by a factor of 2. Fill in sampling_question() to answer both parts.</p>
 
 </div>
 </div>
@@ -12536,11 +12543,13 @@ Also, see for yourself how close (or not) this estimation is to what the Inferen
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">compare_sampling</span><span class="p">(</span><span class="n">bayes_net</span><span class="p">,</span><span class="n">initial_state</span><span class="p">):</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">compare_sampling</span><span class="p">(</span><span class="n">bayes_net</span><span class="p">,</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">delta</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compare Gibbs and Metropolis-Hastings sampling by calculating how long it takes for each method to converge.&quot;&quot;&quot;</span>    
-    <span class="n">Gibbs_Count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Gibbs_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">MH_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">MH_rejection_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">Gibbs_convergence</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># posterior distribution of the BvC match as produced by Gibbs </span>
+    <span class="n">MH_convergence</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># posterior distribution of the BvC match as produced by MH</span>
     <span class="c1"># TODO: finish this function</span>
     
     
@@ -12557,8 +12566,9 @@ Also, see for yourself how close (or not) this estimation is to what the Inferen
 <div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="n">initial_state</span> <span class="o">=</span> <span class="n">initial_value</span>
-<span class="n">compare_sampling</span><span class="p">(</span><span class="n">game_net</span><span class="p">,</span><span class="n">initial_state</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">initial_state</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="mf">0.001</span>
+<span class="n">compare_sampling</span><span class="p">(</span><span class="n">game_net</span><span class="p">,</span><span class="n">initial_state</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -12584,6 +12594,16 @@ Also, see for yourself how close (or not) this estimation is to what the Inferen
 </div>
 </div>
 
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>And we are done!</p>
+
+</div>
+</div>
 </div>
     </div>
   </div>
