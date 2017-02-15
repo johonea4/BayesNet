@@ -22,19 +22,27 @@ import Distribution
 from Distribution import DiscreteDistribution, ConditionalDiscreteDistribution
 from Inference import JunctionTreeEngine
 
+
 def make_power_plant_net():
     """Create a Bayes Net representation of the above power plant problem. 
     Use the following as the name attribute: "alarm","faulty alarm", "gauge","faulty gauge", "temperature". (for the tests to work.)
     """
+    nodes = []
     # TODO: finish this function    
     raise NotImplementedError
-
+    return BayesNet(nodes)
 
 def set_probability(bayes_net):
-    """Set probability distribution for each node in the power plant system."""
-    # TODO: finish this function
-    raise NotImplementedError
-
+    """Set probability distribution for each node in the power plant system."""    
+    A_node = bayes_net.get_node_by_name("alarm")
+    F_A_node = bayes_net.get_node_by_name("faulty alarm")
+    G_node = bayes_net.get_node_by_name("gauge")
+    F_G_node = bayes_net.get_node_by_name("faulty gauge")
+    T_node = bayes_net.get_node_by_name("temperature")
+    nodes = [A_node, F_A_node, G_node, F_G_node, T_node]
+    # TODO: set the probability distribution for each node
+    raise NotImplementedError    
+    return bayes_net
 
 def get_alarm_prob(bayes_net, alarm_rings):
     """Calculate the marginal 
@@ -43,6 +51,7 @@ def get_alarm_prob(bayes_net, alarm_rings):
     power plant system."""
     # TODO: finish this function
     raise NotImplementedError
+    return alarm_prob
 
 
 def get_gauge_prob(bayes_net, gauge_hot):
@@ -52,6 +61,7 @@ def get_gauge_prob(bayes_net, gauge_hot):
     power plant system."""
     # TOOD: finish this function
     raise NotImplementedError
+    return gauge_prob
 
 
 def get_temperature_prob(bayes_net,temp_hot):
@@ -62,44 +72,69 @@ def get_temperature_prob(bayes_net,temp_hot):
     nor alarm is faulty."""
     # TODO: finish this function
     raise NotImplementedError
+    return temp_prob
 
 
 def get_game_network():
     """Create a Bayes Net representation of the game problem.
     Name the nodes as "A","B","C","AvB","BvC" and "CvA".  """
+    nodes = []
     # TODO: fill this out
-    raise NotImplementedError
+    raise NotImplementedError    
+    return BayesNet(nodes)
 
-
-def calculate_posterior(games_net):
+def calculate_posterior(bayes_net):
     """Calculate the posterior distribution of the BvC match given that A won against B and tied C. 
     Return a list of probabilities corresponding to win, loss and tie likelihood."""
-    # TODO: finish this function
-    raise NotImplementedError
-
-
-
-def Gibbs_sampler(games_net, initial_value):
-    """Complete a single iteration of the Gibbs sampling algorithm 
-    given a Bayesian network and an initial state value. 
-    """
-    # TODO: finish this function
-    raise NotImplementedError
-
-
-def MH_sampler(games_net, initial_value):
-    """Complete a single iteration of the MH sampling algorithm given a Bayesian network and an initial state value. 
-    """
+    posterior = [0,0,0]
     # TODO: finish this function    
     raise NotImplementedError
+    return posterior # list 
 
 
-
-def compare_sampling(bayes_net,initial_state):
-    """Compare Gibbs and Metropolis-Hastings sampling by calculating how long it takes for each method to converge."""    
+def Gibbs_sampler(bayes_net, initial_state):
+    """Complete a single iteration of the Gibbs sampling algorithm 
+    given a Bayesian network and an initial state value. 
+    
+    initial_state is a list of length 6 where: 
+    index 0-2: represent skills of teams A,B,C (values lie in [0,3] inclusive)
+    index 3-5: represent results of matches AvB, BvC, CvA (values lie in [0,2] inclusive)
+    
+    Returns the new state sampled from the probability distribution as a tuple of length 6.
+    Return the sample as a tuple.    
+    """
+    sample = tuple(initial_state)    
     # TODO: finish this function
     raise NotImplementedError
+    return sample
 
+def MH_sampler(bayes_net, initial_state):
+    """Complete a single iteration of the MH sampling algorithm given a Bayesian network and an initial state value. 
+    initial_state is a list of length 6 where: 
+    index 0-2: represent skills of teams A,B,C (values lie in [0,3] inclusive)
+    index 3-5: represent results of matches AvB, BvC, CvA (values lie in [0,2] inclusive)    
+    Returns the new state sampled from the probability distribution as a tuple of length 6. 
+    """
+    A= bayes_net.get_node_by_name("A")      
+    AvB= bayes_net.get_node_by_name("AvB")
+    match_table = AvB.dist.table
+    team_table = A.dist.table
+    sample = tuple(initial_state)    
+    # TODO: finish this function
+    raise NotImplementedError    
+    return sample
+
+
+def compare_sampling(bayes_net,initial_state, delta):
+    """Compare Gibbs and Metropolis-Hastings sampling by calculating how long it takes for each method to converge."""    
+    Gibbs_count = 0
+    MH_count = 0
+    MH_rejection_count = 0
+    Gibbs_convergence = [0,0,0] # posterior distribution of the BvC match as produced by Gibbs 
+    MH_convergence = [0,0,0] # posterior distribution of the BvC match as produced by MH
+    # TODO: finish this function
+    raise NotImplementedError        
+    return Gibbs_convergence, MH_convergence, Gibbs_count, MH_count, MH_rejection_count
 
 def sampling_question():
     """Question about sampling performance."""
