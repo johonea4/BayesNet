@@ -8,12 +8,20 @@ from bonnie.submission import Submission
 
 LATE_POLICY = \
 """Late Policy:
+
   \"I have read the late policy for CS6601. I understand that only my last
-  commit before the late submission deadline will be accepted and that late
-  penalties apply if any part of the assignment is submitted late.\"
+  commit before the late submission deadline will be accepted.\"
 """
 
-HONOR_PLEDGE = "Honor Pledge:\n\n  \"I have neither given nor received aid on this assignment.\"\n"
+HONOR_PLEDGE = \
+"""Honor Pledge:
+
+  \"I have read the Collaboration and Academic Honesty policy for CS6601.
+  I certify that I have used outside references only in accordance with
+  this policy, that I have cited any such references via code comments,
+  and that I have not copied any portion of my submission from another
+  past or current student.\"
+"""
 
 def require_pledges():
   print(LATE_POLICY)
