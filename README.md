@@ -8,8 +8,6 @@ This assignment is due on June 26th, 11:59PM UTC-12. Please submit your solution
 
 _[35 points total]_
 
-35 points total
-
 To start, design a basic probabilistic model for the following system:
 
 There's a nuclear power plant in which an alarm is supposed to ring when the core temperature, indicated by a gauge, exceeds a fixed threshold. For simplicity, we assume that the temperature is represented as either high or normal. However, the alarm is sometimes faulty, and the gauge is more likely to fail when the temperature is high. Use the following Boolean variables in your implementation:
@@ -22,7 +20,7 @@ There's a nuclear power plant in which an alarm is supposed to ring when the cor
 
 You will test your implementation at the end of the section.
 
-### 1a: Casting the net
+#### 1a: Casting the net
 
 _[10 points]_
 
@@ -39,7 +37,7 @@ You will use BayesNode.add\_parent() and BayesNode.add\_child() to connect nodes
     
 You can run probability\_tests.network\_setup\_test() to make sure your network is set up correctly.
 
-### 1b: Setting the probabilities
+#### 1b: Setting the probabilities
 
 _[15 points]_
 
@@ -64,10 +62,10 @@ Use index 0 to represent FALSE or you may run into testing issues.
 
 If you wanted to set the distribution for P(A|G) to be
 
-|$G$|$P(A=true| G)$|
-|------|-----|
-|T| 0.75|
-|F| 0.85| 
+|G|$P(A=true | G)$|
+| ------ | ----- |
+|  T   | 0.75|
+|  F   | 0.85| 
 
 you would invoke:
 
@@ -80,8 +78,8 @@ you would invoke:
 
 Modeling a three-variable relationship is a bit trickier. If you wanted to set the following distribution for $P(A|G,T)$ to be
 
-|$G$|$T$|$P(A=true| G, T)$|
-|--|--|:----:|
+| G   |  T  |$P(A=true| G, T)$|
+| --- | --- |:----:|
 |T|T|0.15|
 |T|F|0.6|
 |F|T|0.2|
@@ -103,7 +101,7 @@ The key is to remember that 0 represents the index of the false probability, and
 
 You can check your probability distributions with probability_tests.probability_setup_test().
 
-### 1c: Probability calculations : Perform inference
+#### 1c: Probability calculations : Perform inference
 
 _[10 points]_
 
@@ -147,7 +145,7 @@ Sampling is a method for ESTIMATING a probability distribution when it is prohib
 
 Here, we want to estimate the outcome of the matches, given prior knowledge of previous matches. Rather than using inference, we will do so by sampling the network using two [Markov Chain Monte Carlo](http://www.statistics.com/papers/LESSON1_Notes_MCMC.pdf) models: Gibbs sampling (2c) and Metropolis-Hastings (2d).
 
-### 2a: Build the network.
+#### 2a: Build the network.
 
 _[10 points]_
 
@@ -181,7 +179,7 @@ In addition, assume that the differences in skill levels correspond to the follo
 |2|0.15|0.75|0.10|
 |3|0.05|0.90|0.05|
 
-### 2b: Calculate posterior distribution for the 3rd match.
+#### 2b: Calculate posterior distribution for the 3rd match.
 
 _[5 points]_
 
@@ -201,7 +199,7 @@ Hint 2: you'll also want to use the random package (e.g. random.randint()) for t
 
 Hint 3: in order to count the sample states later on, you'll want to make sure the sample that you return is hashable. One way to do this is by returning the sample as a tuple.
 
-### 2d: Metropolis-Hastings sampling
+#### 2d: Metropolis-Hastings sampling
 
 _[15 points]_
 
@@ -216,7 +214,7 @@ Note: DO NOT USE the given inference engines to run the sampling method, since t
 
      "YOU WILL SCORE 0 POINTS IF YOU USE THE PROVIDED INFERENCE ENGINES, OR ANY OTHER SAMPLING METHOD"
 
-### 2e: Comparing sampling methods
+#### 2e: Comparing sampling methods
 _[20 points]_
 
 Now we are ready for the moment of truth.
