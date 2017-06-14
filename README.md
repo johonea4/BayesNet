@@ -62,7 +62,7 @@ Use index 0 to represent FALSE or you may run into testing issues.
 
 If you wanted to set the distribution for P(A|G) to be
 
-|G|$P(A=true | G)$|
+|  G  |P(A=true given G)|
 | ------ | ----- |
 |  T   | 0.75|
 |  F   | 0.85| 
@@ -76,9 +76,9 @@ you would invoke:
     A_distribution = ConditionalDiscreteDistribution(nodes=[G_node,A_node], table=dist)
     A_node.set_dist(A_distribution)
 
-Modeling a three-variable relationship is a bit trickier. If you wanted to set the following distribution for $P(A|G,T)$ to be
+Modeling a three-variable relationship is a bit trickier. If you wanted to set the following distribution for P(A|G,T) to be
 
-| G   |  T  |$P(A=true| G, T)$|
+| G   |  T  |P(A=true given G and T)|
 | --- | --- |:----:|
 |T|T|0.15|
 |T|F|0.6|
@@ -121,7 +121,7 @@ Here's an example of how to do inference for the marginal probability of the "fa
     index = Q.generate_index([True],range(Q.nDims))
     prob = Q[index]
   
-To compute the conditional probability, set the evidence variables before computing the marginal as seen below (here we're computing $P(A = false | F_A = true, T = False)$):
+To compute the conditional probability, set the evidence variables before computing the marginal as seen below (here we're computing P(A = false | F_A = true, T = False)):
 
     engine.evidence[F_A_node] = True
     engine.evidence[T_node] = False
@@ -129,7 +129,7 @@ To compute the conditional probability, set the evidence variables before comput
     index = Q.generate_index([False],range(Q.nDims))
     prob = Q[index]
 
-If you need to sanity-check to make sure you're doing inference correctly, you can run inference on one of the probabilities that we gave you in 1b. For instance, running inference on $P(T=true)$ should return 0.19999994 (i.e. almost 20%). You can also calculate the answers by hand to double-check.
+If you need to sanity-check to make sure you're doing inference correctly, you can run inference on one of the probabilities that we gave you in 1b. For instance, running inference on P(T=true) should return 0.19999994 (i.e. almost 20%). You can also calculate the answers by hand to double-check.
 
 #### Part 2: Sampling
 
