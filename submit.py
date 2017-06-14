@@ -4,7 +4,7 @@ import sys
 import argparse
 import json
 import datetime
-from bonnie.submission import Submission
+from nelson.gtomscs import submit
 
 LATE_POLICY = \
 """Late Policy:
@@ -75,15 +75,7 @@ def main():
     filenames = ["probability_solution.py"]
 
   print "Submission processing...\n"
-  submission = Submission('cs6601', quiz,
-                          filenames = filenames,
-                          environment = args.environment,
-                          provider = args.provider)
-
-  if args.part == 'assignment_3':
-    display_assignment_3_output(submission)
-  #else:
-  #  display_game(submission)
+  submit('cs6601', 'assignment_3', filenames)
 
 if __name__ == '__main__':
   main()
