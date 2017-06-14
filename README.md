@@ -53,10 +53,10 @@ Knowing these facts, set the conditional probabilities for the necessary variabl
 
 Using pbnt's Distribution class: if you wanted to set the distribution for P(A) to 70% true, 30% false, you would invoke the following commands:
 
-     A_distribution = DiscreteDistribution(A_node)
- index = A_distribution.generate_index([],[])
-     A_distribution[index] = [0.3,0.7]
-     A_node.set_dist(A_distribution)
+>     A_distribution = DiscreteDistribution(A_node)
+>     index = A_distribution.generate_index([],[])
+>     A_distribution[index] = [0.3,0.7]
+>     A_node.set_dist(A_distribution)
 
 Use index 0 to represent FALSE or you may run into testing issues.
 
