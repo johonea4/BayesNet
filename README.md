@@ -199,6 +199,22 @@ Hint 2: you'll also want to use the random package (e.g. random.randint()) for t
 
 Hint 3: in order to count the sample states later on, you'll want to make sure the sample that you return is hashable. One way to do this is by returning the sample as a tuple.
 
+#### 2c: Gibbs sampling
+_[15 points]_
+
+Implement the Gibbs sampling algorithm, which is a special case of Metropolis-Hastings. You'll do this in Gibbs_sampler(), which takes a Bayesian network and initial state value as a parameter and returns a sample state drawn from the network's distribution. In case of Gibbs, the returned state differs from the input state at at-most one variable (randomly chosen).
+
+The method should just consist of a single iteration of the algorithm. If an initial value is not given, default to a state chosen uniformly at random from the possible states.
+
+Note: DO NOT USE the given inference engines to run the sampling method, since the whole point of sampling is to calculate marginals without running inference. 
+
+
+     "YOU WILL SCORE 0 POINTS ON THIS ASSIGNMENT IF YOU USE THE GIVEN INFERENCE ENGINES FOR THIS PART"
+
+
+You may find [this](http://gandalf.psych.umn.edu/users/schrater/schrater_lab/courses/AI2/gibbs.pdf) helpful in understanding the basics of Gibbs sampling over Bayesian networks. 
+
+
 #### 2d: Metropolis-Hastings sampling
 
 _[15 points]_
