@@ -20,7 +20,7 @@ class ProbabilityTests(unittest.TestCase):
         """Test that all nodes in the power plant network have proper probability distributions.
         Note that all nodes have to be named predictably for tests to run correctly."""
         # first test temperature distribution
-        power_plant = make_power_plant_net()
+        power_plant = set_probability(make_power_plant_net())
         T_node = power_plant.get_node_by_name('temperature')
         self.assertTrue(T_node is not None, msg='No temperature node initialized')
             
@@ -122,11 +122,9 @@ class ProbabilityTests(unittest.TestCase):
                 if j<i:
                     if not (x[0]>x[1] and x[0]>x[2]):
                         flag3=False
-                if (flag1 and flag2 and flag3):
-                    print('correct match distribution')
                     
         self.assertTrue(flag1, msg='Incorrect match distribution for equal skill levels')
-        self.assertTrue((not flag2) or (not flag3), msg='Incorrect match distribution: teams with higher skill levels should have higher win probabilities')
+        self.assertTrue(flag2 and flag3, msg='Incorrect match distribution: teams with higher skill levels should have higher win probabilities')
 
     #Part 2b Test
     def test_posterior(self):
