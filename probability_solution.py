@@ -14,7 +14,6 @@ inferenceExample()
 WRITE YOUR CODE BELOW. DO NOT CHANGE ANY FUNCTION HEADERS FROM THE NOTEBOOK.
 '''
 
-
 from Node import BayesNode
 from Graph import BayesNet
 from numpy import zeros, float32
@@ -22,26 +21,93 @@ import Distribution
 from Distribution import DiscreteDistribution, ConditionalDiscreteDistribution
 from Inference import JunctionTreeEngine
 
-
 def make_power_plant_net():
     """Create a Bayes Net representation of the above power plant problem. 
     Use the following as the name attribute: "alarm","faulty alarm", "gauge","faulty gauge", "temperature". (for the tests to work.)
     """
     nodes = []
     # TODO: finish this function    
-    raise NotImplementedError
+    
+    A_Node = BayesNode(0,2,name="alarm")
+    FA_Node = BayesNode(2,2,name="faulty alarm")
+    G_Node = BayesNode(3,2,name="gauge")
+    FG_Node = BayesNode(4,2,name="faulty gauge")
+    T_Node = BayesNode(5,2,name="temperature")
+
+    # T -> FG
+    T_Node.add_child(FG_Node)
+    FG_Node.add_parent(T_Node)
+    # FG -> G
+    FG_Node.add_child(G_Node)
+    G_Node.add_parent(FG_Node)
+    # T -> G
+    T_Node.add_child(G_Node)
+    G_Node.add_parent(T_Node)
+    # G -> A
+    G_Node.add_child(A_Node)
+    A_Node.add_parent(G_Node)
+    # FA -> A
+    FA_Node.add_child(A_Node)
+    A_Node.add_parent(FA_Node)
+
+    nodes.append(A_Node)
+    nodes.append(FA_Node)
+    nodes.append(G_Node)
+    nodes.append(FG_Node)
+    nodes.append(T_Node)
+    
     return BayesNet(nodes)
 
 def set_probability(bayes_net):
     """Set probability distribution for each node in the power plant system."""    
+
+    '''
+    Probability Tables
+    ======================================
+    P(FA=true) = 0.15
+    P(T=true) = 0.2
+
+    FG | T | P(G=true given FG, T)
+    ---------------------------------
+    T  | T | 0.2
+    T  | F | 0.8
+    F  | T | 0.95
+    F  | F | 0.15
+
+    T | P(FG=true given T)
+    --------------------------
+    T | 0.8
+    F | 0.05
+
+    FA | G | P(A=true given FA, G)
+    --------------------------------
+    T  | T | 0.55
+    T  | F | 0.45
+    F  | T | 0.9
+    F  | F | 0.1
+    '''
+    
     A_node = bayes_net.get_node_by_name("alarm")
     F_A_node = bayes_net.get_node_by_name("faulty alarm")
     G_node = bayes_net.get_node_by_name("gauge")
     F_G_node = bayes_net.get_node_by_name("faulty gauge")
     T_node = bayes_net.get_node_by_name("temperature")
     nodes = [A_node, F_A_node, G_node, F_G_node, T_node]
-    # TODO: set the probability distribution for each node
-    raise NotImplementedError    
+
+    # P(FA)
+    fa_dist = DiscreteDistribution(F_A_node)
+    idx = fa_dist.generate_index([],[])
+    fa_dist[idx] = [0.85,0.15]
+    F_A_node.set_dist(fa_dist)
+
+    # P(T)
+    t_dist = DiscreteDistribution(T_node)
+    idx = t_dist.generate_index([],[])
+    t_dist[idx] = [0.8,0.2]
+    T_node.set_dist(t_dist)
+
+    # P(FG | T)
+
     return bayes_net
 
 def get_alarm_prob(bayes_net, alarm_rings):
