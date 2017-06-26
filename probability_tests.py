@@ -72,6 +72,13 @@ class ProbabilityTests(unittest.TestCase):
         self.assertEqual(rows2, 2, msg='Incorrect alarm distribution size')
         self.assertEqual(cols,  2, msg='Incorrect alarm distribution size')
 
+        #get probabilities
+        p1 = get_alarm_prob(power_plant,True)
+        p2 = get_gauge_prob(power_plant,True)
+        p3 = get_temperature_prob(power_plant,True)
+
+        print("Probablities: %f, %f, %f") % (p1,p2,p3)
+
     #Part 2a Test
     def test_games_network(self):
         """Test that the games network has the proper number of nodes and edges."""
@@ -131,6 +138,15 @@ class ProbabilityTests(unittest.TestCase):
         posterior = calculate_posterior(get_game_network())
 
         self.assertTrue(abs(posterior[0]-0.25)<0.01 and abs(posterior[1]-0.42)<0.01 and abs(posterior[2]-0.31)<0.01, msg='Incorrect posterior calculated')
+
+    def test_gibbs(self):
+        gibbs = Gibbs_sampler(get_game_network(),None)
+        gibbs = Gibbs_sampler(get_game_network(),gibbs)
+        gibbs = Gibbs_sampler(get_game_network(),gibbs)
+        gibbs = Gibbs_sampler(get_game_network(),gibbs)
+        gibbs = Gibbs_sampler(get_game_network(),gibbs)
+        gibbs = Gibbs_sampler(get_game_network(),gibbs)
+        self.assertTrue(True)
 
 if __name__ == '__main__':
     unittest.main()

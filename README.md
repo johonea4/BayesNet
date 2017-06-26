@@ -154,7 +154,7 @@ Build a Bayes Net to represent the three teams and their influences on the match
 
 | variable name | description|
 |---------|:------:|
-|A| A's skill level|
+|A | A's skill level|
 |B | B's skill level|
 |C | C's skill level|
 |AvB | the outcome of A vs. B <br> (0 = A wins, 1 = B wins, 2 = tie)|

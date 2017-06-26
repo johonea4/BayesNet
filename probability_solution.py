@@ -16,10 +16,11 @@ WRITE YOUR CODE BELOW. DO NOT CHANGE ANY FUNCTION HEADERS FROM THE NOTEBOOK.
 
 from Node import BayesNode
 from Graph import BayesNet
-from numpy import zeros, float32
+from numpy import zeros, float32, random
 import Distribution
 from Distribution import DiscreteDistribution, ConditionalDiscreteDistribution
 from Inference import JunctionTreeEngine
+from Inference import EnumerationEngine
 
 def make_power_plant_net():
     """Create a Bayes Net representation of the above power plant problem. 
@@ -107,6 +108,29 @@ def set_probability(bayes_net):
     T_node.set_dist(t_dist)
 
     # P(FG | T)
+    fg_dist = zeros([T_node.size(),F_G_node.size()],dtype=float32)
+    fg_dist[0,:] = [0.95,0.05]
+    fg_dist[1,:] = [0.2,0.8]
+    fg = ConditionalDiscreteDistribution(nodes=[T_node,F_G_node],table=fg_dist)
+    F_G_node.set_dist(fg)
+
+    # P(G | FG,T)
+    g_dist = zeros([F_G_node.size(),T_node.size(),G_node.size()],dtype=float32)
+    g_dist[0,0,:] = [0.95,0.05]
+    g_dist[0,1,:] = [0.05,0.95]
+    g_dist[1,0,:] = [0.2,0.8]
+    g_dist[1,1,:] = [0.8,0.2]
+    g=ConditionalDiscreteDistribution(nodes=[F_G_node,T_node,G_node],table=g_dist)
+    G_node.set_dist(g)
+
+    # P(A | FA,G)
+    a_dist = zeros([F_A_node.size(),G_node.size(),A_node.size()],dtype=float32)
+    a_dist[0,0,:] = [0.9,0.1]
+    a_dist[0,1,:] = [0.1,0.9]
+    a_dist[1,0,:] = [0.55,0.45]
+    a_dist[1,1,:] = [0.45,0.55]
+    a=ConditionalDiscreteDistribution(nodes=[F_A_node,G_node,A_node],table=a_dist)
+    A_node.set_dist(a)
 
     return bayes_net
 
@@ -115,8 +139,14 @@ def get_alarm_prob(bayes_net, alarm_rings):
     probability of the alarm 
     ringing (T/F) in the 
     power plant system."""
-    # TODO: finish this function
-    raise NotImplementedError
+
+    A_node = bayes_net.get_node_by_name("alarm")
+    engine = JunctionTreeEngine(bayes_net)
+    Q = engine.marginal(A_node)[0]
+    idx = Q.generate_index([alarm_rings],range(Q.nDims))
+
+    alarm_prob = Q[idx]
+
     return alarm_prob
 
 
@@ -125,8 +155,14 @@ def get_gauge_prob(bayes_net, gauge_hot):
     probability of the gauge 
     showing hot (T/F) in the 
     power plant system."""
-    # TOOD: finish this function
-    raise NotImplementedError
+
+    G_node = bayes_net.get_node_by_name("gauge")
+    engine = JunctionTreeEngine(bayes_net)
+    Q = engine.marginal(G_node)[0]
+    idx = Q.generate_index([gauge_hot],range(Q.nDims))
+
+    gauge_prob = Q[idx]  
+    
     return gauge_prob
 
 
@@ -136,28 +172,134 @@ def get_temperature_prob(bayes_net,temp_hot):
     power plant system, given that the
     alarm sounds and neither the gauge
     nor alarm is faulty."""
-    # TODO: finish this function
-    raise NotImplementedError
+
+    # P(T=true | A=true, FA=false, FG=false)
+    A_node = bayes_net.get_node_by_name("alarm")
+    F_A_node = bayes_net.get_node_by_name("faulty alarm")
+    F_G_node = bayes_net.get_node_by_name("faulty gauge")
+    T_node = bayes_net.get_node_by_name("temperature")
+
+    engine = JunctionTreeEngine(bayes_net)
+    engine.evidence[A_node] = True
+    engine.evidence[F_A_node] = False
+    engine.evidence[F_G_node] = False
+    Q = engine.marginal(T_node)[0]
+    idx = Q.generate_index([temp_hot],range(Q.nDims))
+
+    temp_prob = Q[idx]
+
     return temp_prob
 
+'''
+Game Probabilities
+==============================
 
+SL | P(SL) where SL=A, B, or C
+------------------------------
+0  | 0.15
+1  | 0.45
+2  | 0.3
+3  | 0.1
+
+A-B | P(AvB=0 | A-B) | P(AvB=1 | A-B) | P(AvB=2 | A-B)
+-------------------------------------------------------
+0   | 0.1            | 0.1            | 0.8
+1   | 0.2            | 0.6            | 0.2
+2   | 0.15           | 0.75           | 0.1
+3   | 0.05           | 0.9            | 0.05
+
+'''
 def get_game_network():
     """Create a Bayes Net representation of the game problem.
     Name the nodes as "A","B","C","AvB","BvC" and "CvA".  """
     nodes = []
-    # TODO: fill this out
-    raise NotImplementedError    
+    
+    A = BayesNode(0,4,name="A")
+    B = BayesNode(1,4,name="B")
+    C = BayesNode(2,4,name="C")
+    AvB = BayesNode(3,3,name="AvB")
+    BvC = BayesNode(4,3,name="BvC")
+    CvA = BayesNode(5,3,name="CvA")
+
+    # A -> AvB / A -> CvA
+    A.add_child(AvB)
+    A.add_child(CvA)
+    AvB.add_parent(A)
+    CvA.add_parent(A)
+
+    # B -> AvB / B -> BvC
+    B.add_child(AvB)
+    B.add_child(BvC)
+    AvB.add_parent(B)
+    BvC.add_parent(B)
+
+    # C -> BvC / C -> CvA
+    C.add_child(BvC)
+    C.add_child(CvA)
+    BvC.add_parent(C)
+    CvA.add_parent(C)
+
+    N = [A,B,C]
+    for n in N:
+        dist = DiscreteDistribution(n)
+        idx = dist.generate_index([],[])
+        dist[idx] = [0.15,0.45,0.3,0.1]
+        n.set_dist(dist)
+
+    N = [AvB,BvC,CvA]
+    NN = [ [A,B],[B,C],[C,A] ]
+    c=0
+    for n in N:
+        dist = zeros([NN[c][0].size(),NN[c][1].size(),n.size()],dtype=float32)
+        for i in range(0,4):
+            for j in range(0,4):
+                if( (j-i) == 0):
+                    dist[i,j,:] = [0.1,0.1,0.8]
+                elif ((j-i)==1):
+                    dist[i,j,:] = [0.2,0.6,0.2]
+                elif ((j-i)==2):
+                    dist[i,j,:] = [0.15,0.75,0.1]
+                elif ((j-i)==3):
+                    dist[i,j,:] = [0.05,0.9,0.05]
+                elif ((j-i)==-1):
+                    dist[i,j,:] = [0.6,0.2,0.2]
+                elif ((j-i)==-2):
+                    dist[i,j,:] = [0.75,0.15,0.1]
+                elif ((j-i)==-3):
+                    dist[i,j,:] = [0.9,0.05,0.05]
+
+        tmp = ConditionalDiscreteDistribution(nodes=[NN[c][0],NN[c][1],n],table=dist)
+        n.set_dist(tmp)
+        c += 1
+    
+    nodes = [ A,B,C,AvB,BvC,CvA ]
+
     return BayesNet(nodes)
 
 def calculate_posterior(bayes_net):
     """Calculate the posterior distribution of the BvC match given that A won against B and tied C. 
     Return a list of probabilities corresponding to win, loss and tie likelihood."""
     posterior = [0,0,0]
-    # TODO: finish this function    
-    raise NotImplementedError
+    AvB = bayes_net.get_node_by_name("AvB")
+    BvC = bayes_net.get_node_by_name("BvC")
+    CvA = bayes_net.get_node_by_name("CvA")
+
+    engine = EnumerationEngine(bayes_net)
+    engine.evidence[AvB] = 0
+    engine.evidence[CvA] = 2
+
+    Q = engine.marginal(BvC)[0]
+    idx1 = Q.generate_index(0,range(Q.nDims))
+    idx2 = Q.generate_index(1,range(Q.nDims))
+    idx3 = Q.generate_index(2,range(Q.nDims))
+    
+    posterior = [Q[idx1],Q[idx2],Q[idx3]]
+    
     return posterior # list 
 
-
+#Gibbs Implementation. The function sample_value_given_mb was used as a guide
+#for performing the markov blanket calculation and utilizing methods in BayesNode,
+#Distribution, etc.
 def Gibbs_sampler(bayes_net, initial_state):
     """Complete a single iteration of the Gibbs sampling algorithm 
     given a Bayesian network and an initial state value. 
@@ -169,10 +311,65 @@ def Gibbs_sampler(bayes_net, initial_state):
     Returns the new state sampled from the probability distribution as a tuple of length 6.
     Return the sample as a tuple.    
     """
-    sample = tuple(initial_state)    
-    # TODO: finish this function
-    raise NotImplementedError
-    return sample
+    #Get The Nodes
+    A = bayes_net.get_node_by_name("A")
+    B = bayes_net.get_node_by_name("B")
+    C = bayes_net.get_node_by_name("C")
+    AvB = bayes_net.get_node_by_name("AvB")
+    BvC = bayes_net.get_node_by_name("BvC")
+    CvA = bayes_net.get_node_by_name("CvA")
+    
+    nodelist = [A,B,C,AvB,BvC,CvA]
+    states = dict()
+
+    #See if inititial_state is specified
+    if initial_state == None or len(initial_state) != 6:
+        initial_state = [0,0,0,0,0,0]
+        initial_state[0] = random.randint(0,4)
+        initial_state[1] = random.randint(0,4)
+        initial_state[2] = random.randint(0,4)
+        initial_state[3] = random.randint(0,3)
+        initial_state[4] = random.randint(0,3)
+        initial_state[5] = random.randint(0,3)
+
+    sample = list(initial_state)
+    for i in range(0,6):
+        states[nodelist[i]] = sample[i]
+
+    ridx = random.randint(0,6)
+    n = nodelist[ridx]
+    children = n.children
+    currentState = states[n]
+    P_n = DiscreteDistribution(n)
+    samp = []
+    normal = 0
+
+    for i in range(n.size()):
+        states[n]=i
+        pidx = P_n.generate_index(i,range(P_n.nDims))
+        dist_nodes = n.dist.nodes
+        v = []
+        for d in dist_nodes:
+            v.append(states[d])
+        idx = n.dist.generate_index(v,range(n.dist.nDims))
+        P_n[pidx] = n.dist[idx]
+        for c in children:
+            cdist_nodes = c.dist.nodes
+            cv = []
+            for d in cdist_nodes:
+                cv.append(states[d])
+            idx = c.dist.generate_index(cv,range(c.dist.nDims))
+            P_n[pidx] *= c.dist[idx]
+        samp.append(P_n[pidx])
+        normal += P_n[pidx]
+
+    states[n]=currentState
+    for i in range(len(samp)):
+        samp[i] /= normal
+    val = random.choice(range(n.size()),p=samp)
+    sample[ridx] = val
+
+    return tuple(sample)
 
 def MH_sampler(bayes_net, initial_state):
     """Complete a single iteration of the MH sampling algorithm given a Bayesian network and an initial state value. 
