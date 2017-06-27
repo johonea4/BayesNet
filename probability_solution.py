@@ -21,6 +21,7 @@ import Distribution
 from Distribution import DiscreteDistribution, ConditionalDiscreteDistribution
 from Inference import JunctionTreeEngine
 from Inference import EnumerationEngine
+from copy import deepcopy
 
 def make_power_plant_net():
     """Create a Bayes Net representation of the above power plant problem. 
@@ -297,6 +298,42 @@ def calculate_posterior(bayes_net):
     
     return posterior # list 
 
+def calculateMB(node, nodelist, sample):
+    states=dict()
+    for i in range(0,len(sample)):
+        states[nodelist[i]] = sample[i]
+
+    children = node.children
+    currentState = states[node]
+    P_n = DiscreteDistribution(node)
+    samp = []
+    normal = 0
+
+    for i in range(node.size()):
+        states[node]=i
+        pidx = P_n.generate_index(i,range(P_n.nDims))
+        dist_nodes = node.dist.nodes
+        v = []
+        for d in dist_nodes:
+            v.append(states[d])
+        idx = node.dist.generate_index(v,range(node.dist.nDims))
+        P_n[pidx] = node.dist[idx]
+        for c in children:
+            cdist_nodes = c.dist.nodes
+            cv = []
+            for d in cdist_nodes:
+                cv.append(states[d])
+            idx = c.dist.generate_index(cv,range(c.dist.nDims))
+            P_n[pidx] *= c.dist[idx]
+        samp.append(P_n[pidx])
+        normal += P_n[pidx]
+
+    states[node]=currentState
+    for i in range(len(samp)):
+        samp[i] /= normal
+    
+    return samp
+
 #Gibbs Implementation. The function sample_value_given_mb was used as a guide
 #for performing the markov blanket calculation and utilizing methods in BayesNode,
 #Distribution, etc.
@@ -333,39 +370,11 @@ def Gibbs_sampler(bayes_net, initial_state):
         initial_state[5] = random.randint(0,3)
 
     sample = list(initial_state)
-    for i in range(0,6):
-        states[nodelist[i]] = sample[i]
 
     ridx = random.randint(0,6)
     n = nodelist[ridx]
-    children = n.children
-    currentState = states[n]
-    P_n = DiscreteDistribution(n)
-    samp = []
-    normal = 0
 
-    for i in range(n.size()):
-        states[n]=i
-        pidx = P_n.generate_index(i,range(P_n.nDims))
-        dist_nodes = n.dist.nodes
-        v = []
-        for d in dist_nodes:
-            v.append(states[d])
-        idx = n.dist.generate_index(v,range(n.dist.nDims))
-        P_n[pidx] = n.dist[idx]
-        for c in children:
-            cdist_nodes = c.dist.nodes
-            cv = []
-            for d in cdist_nodes:
-                cv.append(states[d])
-            idx = c.dist.generate_index(cv,range(c.dist.nDims))
-            P_n[pidx] *= c.dist[idx]
-        samp.append(P_n[pidx])
-        normal += P_n[pidx]
-
-    states[n]=currentState
-    for i in range(len(samp)):
-        samp[i] /= normal
+    samp = calculateMB(n,nodelist,sample)
     val = random.choice(range(n.size()),p=samp)
     sample[ridx] = val
 
@@ -378,14 +387,53 @@ def MH_sampler(bayes_net, initial_state):
     index 3-5: represent results of matches AvB, BvC, CvA (values lie in [0,2] inclusive)    
     Returns the new state sampled from the probability distribution as a tuple of length 6. 
     """
-    A= bayes_net.get_node_by_name("A")      
-    AvB= bayes_net.get_node_by_name("AvB")
-    match_table = AvB.dist.table
-    team_table = A.dist.table
-    sample = tuple(initial_state)    
-    # TODO: finish this function
-    raise NotImplementedError    
-    return sample
+    A = bayes_net.get_node_by_name("A")
+    B = bayes_net.get_node_by_name("B")
+    C = bayes_net.get_node_by_name("C")
+    AvB = bayes_net.get_node_by_name("AvB")
+    BvC = bayes_net.get_node_by_name("BvC")
+    CvA = bayes_net.get_node_by_name("CvA")
+
+    A_dist = A.dist.table
+    B_dist = B.dist.table
+    C_dist = C.dist.table
+    AvB_dist = AvB.dist.table
+    BvC_dist = BvC.dist.table
+    CvA_dist = CvA.dist.table
+  
+        #See if inititial_state is specified
+    if initial_state == None or len(initial_state) != 6:
+        initial_state = [0,0,0,0,0,0]
+        initial_state[0] = random.randint(0,4)
+        initial_state[1] = random.randint(0,4)
+        initial_state[2] = random.randint(0,4)
+        initial_state[3] = random.randint(0,3)
+        initial_state[4] = random.randint(0,3)
+        initial_state[5] = random.randint(0,3)
+
+    sample = list(initial_state)
+    nodeList = [A,B,C,AvB,BvC,CvA]
+    
+    X0 = A_dist[sample[0]] * B_dist[sample[1]] * C_dist[sample[2]]
+    X0 *= AvB_dist[sample[0]][sample[1]][sample[3]] * BvC_dist[sample[1]][sample[2]][sample[4]] * CvA_dist[sample[2]][sample[0]][sample[5]]
+
+    oState = deepcopy(sample)
+
+    for i in range(0,6):
+        sample[i] = random.randint(0,nodeList[i].size())
+
+    XC = A_dist[sample[0]] * B_dist[sample[1]] * C_dist[sample[2]]
+    XC *= AvB_dist[sample[0]][sample[1]][sample[3]] * BvC_dist[sample[1]][sample[2]][sample[4]] * CvA_dist[sample[2]][sample[0]][sample[5]]
+
+    if(XC > X0):
+        return tuple(sample)
+    else:
+        XCp = XC/X0
+        u = random.random_sample()
+        if(XCp > u):
+            return tuple(sample)
+        else:
+            return tuple(oState)
 
 
 def compare_sampling(bayes_net,initial_state, delta):
@@ -393,10 +441,88 @@ def compare_sampling(bayes_net,initial_state, delta):
     Gibbs_count = 0
     MH_count = 0
     MH_rejection_count = 0
+    N=20
+    MinLoop=100
+
+    if initial_state == None or len(initial_state) != 6:
+        initial_state = [0,0,0,0,0,0]
+        initial_state[0] = random.randint(0,4)
+        initial_state[1] = random.randint(0,4)
+        initial_state[2] = random.randint(0,4)
+        initial_state[3] = 0
+        initial_state[4] = random.randint(0,3)
+        initial_state[5] = 2
+    else:
+        initial_state[3]=0
+        initial_state[5]=2
     Gibbs_convergence = [0,0,0] # posterior distribution of the BvC match as produced by Gibbs 
     MH_convergence = [0,0,0] # posterior distribution of the BvC match as produced by MH
-    # TODO: finish this function
-    raise NotImplementedError        
+
+    gibbsDone=False
+    mhDone=False
+    gibbSuccessive=0
+    mhSuccessive=0
+    goState = deepcopy(initial_state)
+    gnState = []
+    moState = deepcopy(initial_state)
+    mnState = []
+
+    while gibbsDone==False or mhDone==False:
+        if gibbsDone == False:
+            gnState = Gibbs_sampler(bayes_net,goState)
+            if(gnState[3]==0 and gnState[5]==2):
+                Gibbs_count+=1
+                goState = gnState
+                lastRun = deepcopy(Gibbs_convergence)
+                Gibbs_convergence[gnState[4]]+=1
+                if(Gibbs_count>MinLoop):
+                    diff = []
+                    for i in range(len(Gibbs_convergence)):
+                        v = float(Gibbs_convergence[i])/float(Gibbs_count)
+                        v-= float(lastRun[i])/float(Gibbs_count-1)
+                        diff.append(abs(v))
+                    diffLess=True
+                    for i in range(len(diff)):
+                        diffLess &= diff[i] <= delta
+                    if diffLess:
+                        gibbSuccessive+=1
+                    else:
+                        gibbSuccessive=0
+                    if gibbSuccessive >= N:
+                        gibbsDone=True
+        if mhDone == False:
+            mnState = MH_sampler(bayes_net,moState)
+            if(mnState[3]==0 and mnState[5]==2):
+                if(mnState == moState):
+                    MH_rejection_count += 1
+                else:
+                    MH_count += 1
+                    moState = mnState
+                    lastRun = deepcopy(MH_convergence)
+                    MH_convergence[mnState[4]] += 1
+                    if(MH_count>MinLoop):
+                        diff = []
+                        for i in range(len(MH_convergence)):
+                            v = float(MH_convergence[i])/float(MH_count)
+                            v-= float(lastRun[i])/float(MH_count-1)
+                            diff.append(abs(v))
+                        diffLess=True
+                        for i in range(len(diff)):
+                            diffLess &= diff[i] <= delta
+                        if diffLess:
+                            mhSuccessive+=1
+                        else:
+                            mhSuccessive=0
+                        if mhSuccessive >= N:
+                            mhDone=True
+
+
+
+    for i in range(len(Gibbs_convergence)):
+        Gibbs_convergence[i] /= float(Gibbs_count)
+    for i in range(len(MH_convergence)):
+        MH_convergence[i] /= float(MH_count)
+
     return Gibbs_convergence, MH_convergence, Gibbs_count, MH_count, MH_rejection_count
 
 def sampling_question():

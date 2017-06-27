@@ -136,6 +136,8 @@ class ProbabilityTests(unittest.TestCase):
     #Part 2b Test
     def test_posterior(self):
         posterior = calculate_posterior(get_game_network())
+        print("2B Posterior:")
+        print(posterior)
 
         self.assertTrue(abs(posterior[0]-0.25)<0.01 and abs(posterior[1]-0.42)<0.01 and abs(posterior[2]-0.31)<0.01, msg='Incorrect posterior calculated')
 
@@ -146,6 +148,24 @@ class ProbabilityTests(unittest.TestCase):
         gibbs = Gibbs_sampler(get_game_network(),gibbs)
         gibbs = Gibbs_sampler(get_game_network(),gibbs)
         gibbs = Gibbs_sampler(get_game_network(),gibbs)
+        self.assertTrue(True)
+
+    def test_gibbs(self):
+        MH = MH_sampler(get_game_network(),None)
+        MH = MH_sampler(get_game_network(),MH)
+        MH = MH_sampler(get_game_network(),MH)
+        MH = MH_sampler(get_game_network(),MH)
+        MH = MH_sampler(get_game_network(),MH)
+        MH = MH_sampler(get_game_network(),MH)
+        MH = MH_sampler(get_game_network(),MH)
+        self.assertTrue(True)
+
+    def test_sample(self):
+        Gibbs_convergence, MH_convergence, Gibbs_count, MH_count, MH_rejection_count = compare_sampling(get_game_network(),None,0.001)
+        print("Gibbs:")
+        print(Gibbs_convergence)
+        print("MH:")
+        print(MH_convergence)
         self.assertTrue(True)
 
 if __name__ == '__main__':
